@@ -1,8 +1,8 @@
-# slack_hist_png
+# slack_ikioi_png
 
 draw channel message count per day/wday/hour
 
-![all.png](https://raw.githubusercontent.com/matsu-chara/slack_hist_png/images/all.png)
+![all.png](https://raw.githubusercontent.com/matsu-chara/slack_ikioi_png/images/all.png)
 
 count upper limit(per day) is 1000, because of slack api limitation.
 
