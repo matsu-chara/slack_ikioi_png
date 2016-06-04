@@ -6,7 +6,7 @@ require 'fileutils'
 require 'gruff'
 
 TOKEN = ENV['SLACK_IKIOI_TOKEN']
-CHANNEL_NAME = ENV['SLACK_IKIOI_CHANNEL_NAME']
+CHANNEL_NAMES = ENV['SLACK_IKIOI_CHANNEL_NAMES'].split(',')
 
 FETCH_LENGTH = 30
 START_DATE = Date.today - FETCH_LENGTH
@@ -87,43 +87,47 @@ def hour_label_and_data(timestamps)
   [label, message_sizes]
 end
 
-client = Slack::Client.new token: TOKEN
-channel_id_hash = fetch_channel_id_hash(client)
-message_times = fetch_message_timestamps(
-  client, channel_id_hash[CHANNEL_NAME], START_DATE, FETCH_LENGTH
-)
-
-# make result directory
+# make result directory if not exists
 FileUtils.mkdir_p 'result'
 
-# render each_day
-g = Gruff::Bar.new(800)
-g.title = "ikioi #{CHANNEL_NAME} per day"
-labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
-g.labels = labels.select { |k, _| k % 4 == 0 }
-g.data(CHANNEL_NAME, data)
-g.write("result/#{CHANNEL_NAME}_day.png")
+client = Slack::Client.new token: TOKEN
+channel_id_hash = fetch_channel_id_hash(client)
 
-# render each wday
-g = Gruff::Bar.new(800)
-g.title = "ikioi #{CHANNEL_NAME} per wday"
-labels, data = wday_label_and_data(message_times)
-g.labels = labels
-g.data(CHANNEL_NAME, data)
-g.write("result/#{CHANNEL_NAME}_wday.png")
+CHANNEL_NAMES.each do |channel_name|
+  p channel_name
+  message_times = fetch_message_timestamps(
+    client, channel_id_hash[channel_name], START_DATE, FETCH_LENGTH
+  )
 
-# render each wday
-g = Gruff::Bar.new(800)
-g.title = "ikioi #{CHANNEL_NAME} per hour"
-labels, data = hour_label_and_data(message_times)
-g.labels = labels
-g.data(CHANNEL_NAME, data)
-g.write("result/#{CHANNEL_NAME}_hour.png")
+  # render each_day
+  g = Gruff::Bar.new(800)
+  g.title = "ikioi #{channel_name} per day"
+  labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
+  g.labels = labels.select { |k, _| k % 4 == 0 }
+  g.data(channel_name, data)
+  g.write("result/#{channel_name}_day.png")
 
-exec("
-  convert -append
-  result/#{CHANNEL_NAME}_day.png
-  result/#{CHANNEL_NAME}_wday.png
-  result/#{CHANNEL_NAME}_hour.png
-  result/#{CHANNEL_NAME}_all.png
-".tr('\n', ' '))
+  # render each wday
+  g = Gruff::Bar.new(800)
+  g.title = "ikioi #{channel_name} per wday"
+  labels, data = wday_label_and_data(message_times)
+  g.labels = labels
+  g.data(channel_name, data)
+  g.write("result/#{channel_name}_wday.png")
+
+  # render each wday
+  g = Gruff::Bar.new(800)
+  g.title = "ikioi #{channel_name} per hour"
+  labels, data = hour_label_and_data(message_times)
+  g.labels = labels
+  g.data(channel_name, data)
+  g.write("result/#{channel_name}_hour.png")
+
+  system(
+    "convert -append \
+    result/#{channel_name}_day.png \
+    result/#{channel_name}_wday.png \
+    result/#{channel_name}_hour.png \
+    result/#{channel_name}_all.png"
+  )
+end
