@@ -5,12 +5,18 @@ require 'date'
 require 'json'
 require 'gruff'
 
-CHANNEL_ID = ENV["SLACK_IKIOI_CHANNEL_ID"]
-CHANNEL_NAME = ENV["SLACK_IKIOI_CHANNEL_NAME"]
 TOKEN = ENV["SLACK_IKIOI_TOKEN"]
+CHANNEL_NAME = ENV["SLACK_IKIOI_CHANNEL_NAME"]
 
 FETCH_LENGTH = 30
 START_DATE = Date.today - FETCH_LENGTH
+
+# チャンネル名 => チャンネルIDのハッシュを取得する
+def fetch_channel_id_hash(client, channel_name)
+  client.channels_list(
+    exclude_archived: 1
+  )['channels'].reduce({}) { |a, e| a.merge({e['name'] => e['id'] })}
+end
 
 # slackから指定チャンネル・指定日(0~23:59)の発言タイムスタンプを取ってくる
 def _fetch_message_timestamps_in_a_day(client, channel_id, date)
@@ -82,8 +88,9 @@ def hour_label_and_data(timestamps)
 end
 
 client = Slack::Client.new token: TOKEN
+channel_id_hash = fetch_channel_id_hash(client, CHANNEL_NAME)
 message_times = fetch_message_timestamps(
-  client, CHANNEL_ID, START_DATE, FETCH_LENGTH
+  client, channel_id_hash[CHANNEL_NAME], START_DATE, FETCH_LENGTH
 )
 
 # render each_day
