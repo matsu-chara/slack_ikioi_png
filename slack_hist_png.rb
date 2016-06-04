@@ -5,7 +5,6 @@ require 'date'
 require 'json'
 require 'gruff'
 
-# channel idは https://api.slack.com/methods/channels.list/test でTest Methodボタンを押すと取れる
 CHANNEL_ID = ENV["SLACK_HIST_CHANNEL_ID"]
 CHANNEL_NAME = ENV["SLACK_HIST_CHANNEL_NAME"]
 TOKEN = ENV["SLACK_HIST_TOKEN"]
