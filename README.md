@@ -21,5 +21,5 @@ vim execute_with_env.sh
 # USAGE
 
 ```bash
-./execute_with_env.sh && open all.png
+./execute_with_env.sh && open result/summary.png
 ```
