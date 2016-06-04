@@ -20,12 +20,17 @@ end
 
 # slackから指定チャンネル・指定日(0~23:59)の発言タイムスタンプを取ってくる
 def _fetch_message_timestamps_in_a_day(client, channel_id, date)
-  client.channels_history(
+  stamps = client.channels_history(
     channel: channel_id,
     oldest:  date.to_time.to_i,
     latest:  (date + 1).to_time.to_i,
     count:   1000
   )['messages'].map { |m| Time.at(m['ts'].to_f) }
+
+  # API上限で1000件しか取れないため1日に1000件以上の発言があるといくつか取りこぼす。
+  # その場合、ある程度欠損した結果を出力するので警告を出しておく。
+  puts "warn: channel_id = #{channel_id} has over 1000 msg in a day" if stamps.length >= 1000
+  stamps
 end
 
 # 指定日からdate_length日間のtimestampの配列を返す
