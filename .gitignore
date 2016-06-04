@@ -1,7 +1,4 @@
-day.png
-wday.png
-hour.png
-all.png
+result/
 execute_with_env.sh
 
 # Created by https://www.gitignore.io/api/ruby

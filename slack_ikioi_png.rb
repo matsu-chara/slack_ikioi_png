@@ -2,7 +2,7 @@
 
 require 'slack'
 require 'date'
-require 'json'
+require 'fileutils'
 require 'gruff'
 
 TOKEN = ENV["SLACK_IKIOI_TOKEN"]
@@ -93,13 +93,16 @@ message_times = fetch_message_timestamps(
   client, channel_id_hash[CHANNEL_NAME], START_DATE, FETCH_LENGTH
 )
 
+# make result directory
+FileUtils.mkdir_p 'result'
+
 # render each_day
 g = Gruff::Bar.new(800)
 g.title = "ikioi #{CHANNEL_NAME} per day"
 labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
 g.labels = labels.select { |k, _| k % 4 == 0 }
 g.data(CHANNEL_NAME, data)
-g.write('day.png')
+g.write("result/#{CHANNEL_NAME}_day.png")
 
 # render each wday
 g = Gruff::Bar.new(800)
@@ -107,7 +110,7 @@ g.title = "ikioi #{CHANNEL_NAME} per wday"
 labels, data = wday_label_and_data(message_times)
 g.labels = labels
 g.data(CHANNEL_NAME, data)
-g.write('wday.png')
+g.write("result/#{CHANNEL_NAME}_wday.png")
 
 # render each wday
 g = Gruff::Bar.new(800)
@@ -115,6 +118,12 @@ g.title = "ikioi #{CHANNEL_NAME} per hour"
 labels, data = hour_label_and_data(message_times)
 g.labels = labels
 g.data(CHANNEL_NAME, data)
-g.write('hour.png')
+g.write("result/#{CHANNEL_NAME}_hour.png")
 
-exec("convert -append day.png wday.png hour.png all.png")
+exec("
+  convert -append
+  result/#{CHANNEL_NAME}_day.png
+  result/#{CHANNEL_NAME}_wday.png
+  result/#{CHANNEL_NAME}_hour.png
+  result/#{CHANNEL_NAME}_all.png
+".tr("\n", " "))
