@@ -59,8 +59,8 @@ end
 # メッセージのタイムスタンプ配列を曜日ごとに集計
 def wday_label_and_data(timestamps)
   label = {
-    0 => 'Mon', 1 => 'Tue', 2 => 'Wed', 3 => 'Thu',
-    4 => 'Fri', 5 => 'Sat', 6 => 'Sun'
+    0 => 'Sun', 1 => 'Mon', 2 => 'Tue', 3 => 'Wed',
+    4 => 'Thu', 5 => 'Fri', 6 => 'Sat'
   }
   message_sizes = _make_timestamp_sizes(timestamps, 0..6, :wday)
   raise '曜日の長さがおかしい' if message_sizes.length != 7 && label.length != 7
