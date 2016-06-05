@@ -119,7 +119,7 @@ def find_max_length(channel_label_and_data, kind)
 end
 
 def kiriage(x, position)
-  (x + 50).round(-position)
+  (x + 5 * position).round(-position)
 end
 
 # make result directory if not exists
