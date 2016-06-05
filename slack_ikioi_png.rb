@@ -122,6 +122,8 @@ CHANNEL_NAMES.each do |channel_name|
   labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per day"
+  g.maximum_value = 1000
+  g.minimum_value = 0
   g.labels = labels.select { |k, _| k % 4 == 0 }
   g.data(channel_name, data)
   g.write("result/#{channel_name}_day.png")
@@ -130,6 +132,8 @@ CHANNEL_NAMES.each do |channel_name|
   labels, data = wday_label_and_data(message_times, START_DATE, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per wday"
+  g.maximum_value = 1000
+  g.minimum_value = 0
   g.labels = labels
   g.data(channel_name, data)
   g.write("result/#{channel_name}_wday.png")
@@ -138,6 +142,8 @@ CHANNEL_NAMES.each do |channel_name|
   labels, data = hour_label_and_data(message_times, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per hour"
+  g.maximum_value = 50
+  g.minimum_value = 0
   g.labels = labels
   g.data(channel_name, data)
   g.write("result/#{channel_name}_hour.png")
