@@ -29,7 +29,9 @@ def _fetch_message_timestamps_in_a_day(client, channel_id, date)
 
   # API上限で1000件しか取れないため1日に1000件以上の発言があるといくつか取りこぼす。
   # その場合、ある程度欠損した結果を出力するので警告を出しておく。
-  puts "warn: channel_id = #{channel_id} has over 1000 msg in a day" if stamps.length >= 1000
+  if stamps.length >= 1000
+    puts "warn: channel_id = #{channel_id} has over 1000 msg in a day"
+  end
   stamps
 end
 
@@ -137,8 +139,8 @@ CHANNEL_NAMES.each do |channel_name|
   )
 end
 
-p "summary"
-all_pngs = CHANNEL_NAMES.map{ |c| "result/#{c}_all.png" }.join(" ")
+p 'summary'
+all_pngs = CHANNEL_NAMES.map { |c| "result/#{c}_all.png" }.join(' ')
 system(
   "convert +append \
   #{all_pngs} \
