@@ -69,10 +69,14 @@ def day_label_and_data(timestamps, start_date, length)
   [label, message_sizes]
 end
 
+# 指定期間に含まれるi曜日の回数
+def _wday_count_in_specified_range_date(wday, start_date, length)
+  end_date = (start_date + length - 1)
+  (start_date..end_date).count { |x| x.wday == wday }
+end
+
 # メッセージのタイムスタンプ配列を曜日ごとに集計
 def wday_label_and_data(timestamps, start_date, length)
-  end_date = (start_date + length - 1)
-
   label = {
     0 => 'Sun', 1 => 'Mon', 2 => 'Tue', 3 => 'Wed',
     4 => 'Thu', 5 => 'Fri', 6 => 'Sat'
@@ -81,8 +85,7 @@ def wday_label_and_data(timestamps, start_date, length)
 
   # ある曜日における発言量の合計を、ある曜日の平均発言量に変換する
   message_sizes_in_a_day = message_sizes.map.with_index do |e, i|
-    # 集計期間にi曜日が含まれる回数で割る
-    e.to_f / ((start_date..end_date).count { |x| x.wday == i })
+    e.to_f / _wday_count_in_specified_range_date(i, start_date, length)
   end
 
   raise '曜日の長さがおかしい' if message_sizes_in_a_day.length != 7 && label.length != 7
@@ -106,43 +109,71 @@ def hour_label_and_data(timestamps, fetch_length)
   [label, message_sizes_in_a_day]
 end
 
+# channel_label_and_dataから指定の種別についての最大値を探して返す
+# kind = :day, :wday, :hour
+def find_max_length(channel_label_and_data, kind)
+  (channel_label_and_data.values.reduce([]) do |acc, e|
+    # 1は(label, data)からdataを取り出すためのindex
+    acc.concat(e[kind][1])
+  end).max
+end
+
+def kiriage(x, position)
+  (x + 50).round(-position)
+end
+
 # make result directory if not exists
 FileUtils.mkdir_p 'result'
 
 client = Slack::Client.new token: TOKEN
 channel_id_hash = fetch_channel_id_hash(client)
 
-CHANNEL_NAMES.each do |channel_name|
-  p channel_name
+channel_label_and_data = CHANNEL_NAMES.reduce({}) do |acc, channel_name|
+  p "fetch history #{channel_name}"
   message_times = fetch_message_timestamps(
     client, channel_id_hash[channel_name], START_DATE, FETCH_LENGTH
   )
 
+  acc.merge(
+    channel_name => {
+      day: day_label_and_data(message_times, START_DATE, FETCH_LENGTH),
+      wday: wday_label_and_data(message_times, START_DATE, FETCH_LENGTH),
+      hour: hour_label_and_data(message_times, FETCH_LENGTH)
+    }
+  )
+end
+
+CHANNEL_NAMES.each do |channel_name|
+  p "drawing figure #{channel_name}"
+
   # render each_day
-  labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
+  labels, data = channel_label_and_data[channel_name][:day]
+  max_length = kiriage(find_max_length(channel_label_and_data, :day), 2)
   g = Gruff::Bar.new(800)
-  g.title = "ikioi #{channel_name} per day"
-  g.maximum_value = 1000
+  g.title = "ikioi ##{channel_name} per day"
+  g.maximum_value = max_length
   g.minimum_value = 0
   g.labels = labels.select { |k, _| k % 4 == 0 }
   g.data(channel_name, data)
   g.write("result/#{channel_name}_day.png")
 
   # render each wday
-  labels, data = wday_label_and_data(message_times, START_DATE, FETCH_LENGTH)
+  labels, data = channel_label_and_data[channel_name][:wday]
+  max_length = kiriage(find_max_length(channel_label_and_data, :wday), 2)
   g = Gruff::Bar.new(800)
-  g.title = "ikioi #{channel_name} per wday"
-  g.maximum_value = 1000
+  g.title = "ikioi ##{channel_name} per wday"
+  g.maximum_value = max_length
   g.minimum_value = 0
   g.labels = labels
   g.data(channel_name, data)
   g.write("result/#{channel_name}_wday.png")
 
-  # render each wday
-  labels, data = hour_label_and_data(message_times, FETCH_LENGTH)
+  # render each hour
+  labels, data = channel_label_and_data[channel_name][:hour]
+  max_length = kiriage(find_max_length(channel_label_and_data, :hour), 1)
   g = Gruff::Bar.new(800)
-  g.title = "ikioi #{channel_name} per hour"
-  g.maximum_value = 50
+  g.title = "ikioi ##{channel_name} per hour"
+  g.maximum_value = max_length
   g.minimum_value = 0
   g.labels = labels
   g.data(channel_name, data)
@@ -157,7 +188,7 @@ CHANNEL_NAMES.each do |channel_name|
   )
 end
 
-p 'summary'
+  p 'drawing summary'
 all_pngs = CHANNEL_NAMES.map { |c| "result/#{c}_all.png" }.join(' ')
 system(
   "convert +append \
