@@ -70,28 +70,40 @@ def day_label_and_data(timestamps, start_date, length)
 end
 
 # メッセージのタイムスタンプ配列を曜日ごとに集計
-def wday_label_and_data(timestamps)
+def wday_label_and_data(timestamps, start_date, length)
+  end_date = (start_date + length - 1)
+
   label = {
     0 => 'Sun', 1 => 'Mon', 2 => 'Tue', 3 => 'Wed',
     4 => 'Thu', 5 => 'Fri', 6 => 'Sat'
   }
   message_sizes = _make_timestamp_sizes(timestamps, 0..6, :wday)
-  raise '曜日の長さがおかしい' if message_sizes.length != 7 && label.length != 7
 
-  [label, message_sizes]
+  # ある曜日における発言量の合計を、ある曜日の平均発言量に変換する
+  message_sizes_in_a_day = message_sizes.map.with_index do |e, i|
+    # 集計期間にi曜日が含まれる回数で割る
+    e.to_f / ((start_date..end_date).count { |x| x.wday == i })
+  end
+
+  raise '曜日の長さがおかしい' if message_sizes_in_a_day.length != 7 && label.length != 7
+
+  [label, message_sizes_in_a_day]
 end
 
 # メッセージのタイムスタンプ配列を時間ごとに集計
-def hour_label_and_data(timestamps)
+def hour_label_and_data(timestamps, fetch_length)
   label = (0..23).each_with_index.reduce({}) do |acc, (e, index)|
     acc.merge(index => e)
   end
 
   message_sizes = _make_timestamp_sizes(timestamps, 0..23, :hour)
 
-  raise '日時の長さがおかしい' if message_sizes.length != 24 && label.length != 24
+  # ある時間における発言量の合計を、ある時間の平均発言量に変換する
+  message_sizes_in_a_day = message_sizes.map { |e| e.to_f / fetch_length }
 
-  [label, message_sizes]
+  raise '時の長さがおかしい' if message_sizes_in_a_day.length != 24 && label.length != 24
+
+  [label, message_sizes_in_a_day]
 end
 
 # make result directory if not exists
@@ -107,25 +119,25 @@ CHANNEL_NAMES.each do |channel_name|
   )
 
   # render each_day
+  labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per day"
-  labels, data = day_label_and_data(message_times, START_DATE, FETCH_LENGTH)
   g.labels = labels.select { |k, _| k % 4 == 0 }
   g.data(channel_name, data)
   g.write("result/#{channel_name}_day.png")
 
   # render each wday
+  labels, data = wday_label_and_data(message_times, START_DATE, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per wday"
-  labels, data = wday_label_and_data(message_times)
   g.labels = labels
   g.data(channel_name, data)
   g.write("result/#{channel_name}_wday.png")
 
   # render each wday
+  labels, data = hour_label_and_data(message_times, FETCH_LENGTH)
   g = Gruff::Bar.new(800)
   g.title = "ikioi #{channel_name} per hour"
-  labels, data = hour_label_and_data(message_times)
   g.labels = labels
   g.data(channel_name, data)
   g.write("result/#{channel_name}_hour.png")
