@@ -8,7 +8,7 @@ require 'gruff'
 TOKEN = ENV['SLACK_IKIOI_TOKEN']
 CHANNEL_NAMES = ENV['SLACK_IKIOI_CHANNEL_NAMES'].split(',')
 
-FETCH_LENGTH = 7
+FETCH_LENGTH = ENV['SLACK_IKIOI_FETCH_LENGTH'].to_i
 START_DATE = Date.today - FETCH_LENGTH
 
 # チャンネル名 => チャンネルIDのハッシュを取得する
