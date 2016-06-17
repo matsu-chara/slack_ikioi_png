@@ -83,7 +83,8 @@ def wday_label_and_data(timestamps, start_date, length)
 
   # ある曜日における発言量の合計を、ある曜日の平均発言量に変換する
   message_sizes_in_a_day = message_sizes.map.with_index do |e, i|
-    e.to_f / _wday_count_in_specified_range_date(i, start_date, length)
+    wday_total = _wday_count_in_specified_range_date(i, start_date, length)
+    wday_total > 0 ? e.to_f / wday_total : 0
   end
 
   [label, message_sizes_in_a_day]
