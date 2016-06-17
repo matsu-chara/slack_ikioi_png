@@ -188,7 +188,7 @@ CHANNEL_NAMES.each do |channel_name|
   )
 end
 
-  p 'drawing summary'
+p 'drawing summary'
 all_pngs = CHANNEL_NAMES.map { |c| "result/#{c}_all.png" }.join(' ')
 system(
   "convert +append \
