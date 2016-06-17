@@ -89,7 +89,6 @@ def wday_label_and_data(timestamps, start_date, length)
   end
 
   raise '曜日の長さがおかしい' if message_sizes_in_a_day.length != 7 && label.length != 7
-
   [label, message_sizes_in_a_day]
 end
 
@@ -105,7 +104,6 @@ def hour_label_and_data(timestamps, fetch_length)
   message_sizes_in_a_day = message_sizes.map { |e| e.to_f / fetch_length }
 
   raise '時の長さがおかしい' if message_sizes_in_a_day.length != 24 && label.length != 24
-
   [label, message_sizes_in_a_day]
 end
 
