@@ -123,7 +123,12 @@ FileUtils.mkdir_p 'result'
 client = Slack::Client.new token: TOKEN
 channel_id_hash = fetch_channel_id_hash(client)
 
-channel_label_and_data = CHANNEL_NAMES.reduce({}) do |acc, channel_name|
+channel_names = (channel_id_hash.keys.map do |name|
+  is_matched = (CHANNEL_NAMES.any? { |c| name.match(c) })
+  name if is_matched
+end).compact
+
+channel_label_and_data = channel_names.reduce({}) do |acc, channel_name|
   p "fetch history #{channel_name}"
   message_times = fetch_message_timestamps(
     client, channel_id_hash[channel_name], START_DATE, FETCH_LENGTH
@@ -138,7 +143,7 @@ channel_label_and_data = CHANNEL_NAMES.reduce({}) do |acc, channel_name|
   )
 end
 
-CHANNEL_NAMES.each do |channel_name|
+channel_names.each do |channel_name|
   p "drawing figure #{channel_name}"
 
   # render each_day
@@ -184,7 +189,7 @@ CHANNEL_NAMES.each do |channel_name|
 end
 
 p 'drawing summary'
-all_pngs = CHANNEL_NAMES.map { |c| "result/#{c}_all.png" }.join(' ')
+all_pngs = channel_names.map { |c| "result/#{c}_all.png" }.join(' ')
 system(
   "convert +append \
   #{all_pngs} \
