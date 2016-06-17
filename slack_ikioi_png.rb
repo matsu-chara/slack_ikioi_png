@@ -64,8 +64,6 @@ def day_label_and_data(timestamps, start_date, length)
                                         (start_date..end_date).map(&:day),
                                         :day)
 
-  raise '日の長さがおかしい' if message_sizes.length != length && label.length != length
-
   [label, message_sizes]
 end
 
@@ -88,7 +86,6 @@ def wday_label_and_data(timestamps, start_date, length)
     e.to_f / _wday_count_in_specified_range_date(i, start_date, length)
   end
 
-  raise '曜日の長さがおかしい' if message_sizes_in_a_day.length != 7 && label.length != 7
   [label, message_sizes_in_a_day]
 end
 
@@ -103,7 +100,6 @@ def hour_label_and_data(timestamps, fetch_length)
   # ある時間における発言量の合計を、ある時間の平均発言量に変換する
   message_sizes_in_a_day = message_sizes.map { |e| e.to_f / fetch_length }
 
-  raise '時の長さがおかしい' if message_sizes_in_a_day.length != 24 && label.length != 24
   [label, message_sizes_in_a_day]
 end
 
