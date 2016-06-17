@@ -117,7 +117,7 @@ def kiriage(x, position)
   (x + 5 * position).round(-position)
 end
 
-# make result directory if not exists
+FileUtils.rm_rf 'result'
 FileUtils.mkdir_p 'result'
 
 client = Slack::Client.new token: TOKEN
