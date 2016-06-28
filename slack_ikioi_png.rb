@@ -123,7 +123,7 @@ FileUtils.mkdir_p 'result'
 client = Slack::Client.new token: TOKEN
 channel_id_hash = fetch_channel_id_hash(client)
 
-channnel_regexs = CHANNEL_NAMES.map { |n| "^#{n}$" }
+channel_regexs = CHANNEL_NAMES.map { |n| "^#{n}$" }
 channel_names = (channel_id_hash.keys.map do |name|
   is_matched = (channel_regexs.any? { |c| name.match(c) })
   name if is_matched
